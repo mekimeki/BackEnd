@@ -2,6 +2,8 @@ import librosa
 import numpy
 import matplotlib.pylab as plt
 
+# check git
+
 
 def extract_max(pitches, magnitudes, shape):
     new_pitches = []
@@ -67,12 +69,13 @@ def analyse(y, sr, n_fft, hop_length, fmin, fmax):
     # plot(magnitudes, 'magnitudes')
     # plot(y, 'audio')
 
+
 def main():
     # Set all wanted variables
 
     # we want a sample frequency of 16 000
     sample_f = 16000
-    
+
     # We want a windowsize of 30 ms
     window_time = 60
 
@@ -81,7 +84,7 @@ def main():
 
     # We want an overlap of 10 ms
     overlap = 20
-     
+
     # y = audio time series
     # sr = sampling rate of y
 
@@ -90,8 +93,8 @@ def main():
 
     # for recording wav
     duration = int(librosa.get_duration(y=y, sr=sr))
-    
-    total_samples, window_size, needed_nb_windows, n_fft, hop_length =set_variables(
+
+    total_samples, window_size, needed_nb_windows, n_fft, hop_length = set_variables(
         sample_f, duration, window_time, fmin, fmax, overlap)
 
     n_fft = int(n_fft)
