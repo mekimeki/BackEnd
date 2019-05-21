@@ -30,6 +30,7 @@
  */
 namespace App\Http\Controllers\Video;
 
+<<<<<<< HEAD
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Member\CheckController;
 use App\Http\Controllers\Subtitle\SubtitleController;
@@ -41,6 +42,23 @@ use App\Jobs\ConverVideoForThumbnail;
 use App\Model\Video;
 use App\Model\VTag;
 use Illuminate\Http\Request;
+=======
+use Illuminate\Http\Request;
+use App\Model\Video;
+use App\Model\Member;
+use App\Model\VG;
+use App\Model\VTag;
+use App\Http\Requests\StoreVideoRequest;
+use App\Jobs\ConvertVideoForStreaming;
+use App\Jobs\ConverVideoForImage;
+use App\Jobs\ConverVideoForThumbnail;
+use App\Http\Controllers\Word\VideoWordController;
+use App\Http\Controllers\Voca\VocabularyController;
+use App\Http\Controllers\Subtitle\SubtitleController;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\Member\CheckController;
+>>>>>>> b725e9986dbbba4d6490705a06735967361041ed
 use Illuminate\Support\Facades\Storage;
 
 class VideoController extends Controller
