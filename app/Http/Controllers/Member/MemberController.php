@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * 클래스명:                       MemberController
  * @package                       App\Http\Controllers\Member
@@ -25,217 +24,234 @@
  */
 namespace App\Http\Controllers\Member;
 
-use Illuminate\Http\Request;
-use App\Model\Member;
-use Illuminate\Support\Facades\Validator;
-use Auth;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Contracts\Encryption\DecryptException;
 use App\Http\Controllers\Member\CheckController;
+use App\Model\Member;
+use Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use \Firebase\JWT\JWT;
 
 class MemberController extends Controller
 {
     //
-	public $check;
-    public function __construct(){
-    	$this->check = new CheckController();
+    public $check;
+    public function __construct()
+    {
+        $this->check = new CheckController();
     }
 
-	public function register(Request $request) {
+    public function register(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'nickname' => 'required|string|max:100|unique:member_tb',
             'email' => 'required|email|max:255|unique:member_tb',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'messages' => $validator->messages()
+                'messages' => $validator->messages(),
             ], 200);
         }
 
         $member = new Member;
-        $member->fill($request->only('email','password','nickname'));
+        $member->fill($request->only('email', 'password', 'nickname'));
         $member->password = bcrypt($request->password);
         $member->save();
-       
+
         return response()->json([
             'status' => 'success',
-            'data' => $member
+            'data' => $member,
         ], 200);
     }
 
+    public function login(Request $request)
+    {
+        $data = $request->only('email', 'password');
+        \Log::debug("in login");
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:8|max:255',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'messages' => $validator->messages(),
+            ], 200);
+        }
+        if (Auth::attempt($data)) {
+            $jwt = JWT::encode(Auth::user(), 'login-key', 'HS256');
+            return response()->json([
+                'status' => 'login success',
+                'token' => $jwt,
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'login fail',
+            ], 200);
+        }
+    }
 
-	public function login(Request $request) {
-		$data = $request->only('email','password');
-	    $validator = Validator::make($request->all(), [
-	        'email' => 'required|email|max:255',
-	        'password' => 'required|string|min:8|max:255',
-	    ]);
-	    if($validator->fails()) {
-	        return response()->json([
-	            'status' => 'error',
-	            'messages' => $validator->messages()
-	        ], 200);
-	    }
-	    if(Auth::attempt($data)){
-	    	$jwt = JWT::encode(Auth::user(), 'login-key','HS256');
-	    	return response()->json([
-	    		'status'=>'login success',
-	    		'token'=>$jwt,
-	    	],200);
-	    }else{
-	    	return response()->json([
-	    		'status'=>'login fail'
-	    	],200);
-	    }
-	}
+    public function check(Request $request)
+    {
+        \Log::debug("token ======" . $request->token);
 
-	public function check(Request $request){
-		if(!$request->token){
-			return json([
-				'messages'=>'you are not have token'
-			],400);
-		}	
-		$user = (array)JWT::decode($request->token,'login-key',array('HS256'));
-		return $user;
-		return $user['member_pk'];
-	}
+        if (!$request->token) {
+            return json([
+                'messages' => 'you are not have token',
+            ], 400);
+        }
+        $user = (array) JWT::decode($request->token, 'login-key', array('HS256'));
+        return $user;
+        return $user['member_pk'];
+    }
 
-	public function logout(){
-		session()->forget('login_session');
-		Auth::logout();
-		return Auth::user();
-	}
+    public function logout()
+    {
+        session()->forget('login_session');
+        Auth::logout();
+        return Auth::user();
+    }
 
-	public function memberData(){
-		if(Auth::user()){
-			return response()->json([
-				'user'=>Auth::user()
-			]);
-		}
-	}
+    public function memberData()
+    {
+        if (Auth::user()) {
+            return response()->json([
+                'user' => Auth::user(),
+            ]);
+        }
+    }
 
-	public function getRelationshipData($member_pk,$model,$count){
-		
-		if($count){
-				$result = Member::select('member_pk','email','nickname')->where('member_pk',$member_pk)->withCount($model)->get();
-				return response()->json([
-					$model=>$result[0][$model.'_count'],
-				]);;
-			}else{
-				$result = Member::select('member_pk','email','nickname')->where('member_pk',$member_pk)->with($model)->get();
-				//return $result[0];
-				return response()->json([
-					$model=>$result[0],
-				]);;
-		}
-		/*
-		if(Auth::user()){
-			if($count){
-				$result = Member::select('member_pk','email','nickname')->where('member_pk',Auth::user()->member_pk)->withCount($model)->get();
-				return response()->json([
-					$model=>$result[0][$model.'_count'],
-				]);;
-			}else{
-				$result = Member::select('member_pk','email','nickname')->where('member_pk',Auth::user()->member_pk)->with($model)->get();
-				return response()->json([
-					$model=>$result[0],
-				]);;
-			}
-		}else{
-			return response()->json([
-				'status'=>'login please'
-			]);
-		}
-		*/
-	}
+    public function getRelationshipData($member_pk, $model, $count)
+    {
 
-	//100LS결과
-	public function SResult(Request $request){
-		$member_pk = $this->check->check($request);
-		if(isset($member_pk[0]['messages']) ){
-			return response()->json([ 'messages'=>$member_pk[0]['messages'] ],200);
-		}
-		return $this->getRelationshipData($member_pk,'SResUlt',false);
-	}
+        if ($count) {
+            $result = Member::select('member_pk', 'email', 'nickname')->where('member_pk', $member_pk)->withCount($model)->get();
+            return response()->json([
+                $model => $result[0][$model . '_count'],
+            ]);
+        } else {
+            $result = Member::select('member_pk', 'email', 'nickname')->where('member_pk', $member_pk)->with($model)->get();
+            //return $result[0];
+            return response()->json([
+                $model => $result[0],
+            ]);
+        }
+        /*
+    if(Auth::user()){
+    if($count){
+    $result = Member::select('member_pk','email','nickname')->where('member_pk',Auth::user()->member_pk)->withCount($model)->get();
+    return response()->json([
+    $model=>$result[0][$model.'_count'],
+    ]);;
+    }else{
+    $result = Member::select('member_pk','email','nickname')->where('member_pk',Auth::user()->member_pk)->with($model)->get();
+    return response()->json([
+    $model=>$result[0],
+    ]);;
+    }
+    }else{
+    return response()->json([
+    'status'=>'login please'
+    ]);
+    }
+     */
+    }
 
-	//나의비디오
-	public function myVideo(Request $request){
-		$member_pk = $this->check->check($request);
+    //100LS결과
+    public function SResult(Request $request)
+    {
+        $member_pk = $this->check->check($request);
+        if (isset($member_pk[0]['messages'])) {
+            return response()->json(['messages' => $member_pk[0]['messages']], 200);
+        }
+        return $this->getRelationshipData($member_pk, 'SResUlt', false);
+    }
 
-		if(isset($member_pk[0]['messages']) ){
-			return response()->json([ 'messages'=>$member_pk[0]['messages'] ],200);
-		}
-		return $this->getRelationshipData($member_pk,'video',false);
-	}
+    //나의비디오
+    public function myVideo(Request $request)
+    {
+        $member_pk = $this->check->check($request);
 
-	//구독자수
-	public function folowerCount(Request $request){
-		$member_pk = $this->check->check($request);
-		if(isset($member_pk[0]['messages']) ){
-			return response()->json([ 'messages'=>$member_pk[0]['messages'] ],200);
-		}
-		return $this->getRelationshipData($member_pk,'folower',true);
-	}
+        if (isset($member_pk[0]['messages'])) {
+            return response()->json(['messages' => $member_pk[0]['messages']], 200);
+        }
+        return $this->getRelationshipData($member_pk, 'video', false);
+    }
 
-	//나의 단어장
-	public function myWordBook(Request $request){
-		$member_pk = $this->check->check($request);
-		if(isset($member_pk[0]['messages']) ){
-			return response()->json([ 'messages'=>$member_pk[0]['messages'] ],200);
-		}
-		return $this->getRelationshipData($member_pk,'wbook',false);
-	}
+    //구독자수
+    public function folowerCount(Request $request)
+    {
+        $member_pk = $this->check->check($request);
+        if (isset($member_pk[0]['messages'])) {
+            return response()->json(['messages' => $member_pk[0]['messages']], 200);
+        }
+        return $this->getRelationshipData($member_pk, 'folower', true);
+    }
 
-	//어휘시험결과
-	public function VTestResult(Request $request){
-		$member_pk = $this->check->check($request);
-		if(isset($member_pk[0]['messages']) ){
-			return response()->json([ 'messages'=>$member_pk[0]['messages'] ],200);
-		}
-		return $this->getRelationshipData($member_pk,'VTestResult',false);
-	}
+    //나의 단어장
+    public function myWordBook(Request $request)
+    {
+        $member_pk = $this->check->check($request);
+        if (isset($member_pk[0]['messages'])) {
+            return response()->json(['messages' => $member_pk[0]['messages']], 200);
+        }
+        return $this->getRelationshipData($member_pk, 'wbook', false);
+    }
 
-	//회원어휘집
-	public function MVOBook(Request $request){
-		$member_pk = $this->check->check($request);
-		if(isset($member_pk[0]['messages']) ){
-			return response()->json([ 'messages'=>$member_pk[0]['messages'] ],200);
-		}
-		return $this->getRelationshipData($member_pk,'MVOBook',false);
-	}
+    //어휘시험결과
+    public function VTestResult(Request $request)
+    {
+        $member_pk = $this->check->check($request);
+        if (isset($member_pk[0]['messages'])) {
+            return response()->json(['messages' => $member_pk[0]['messages']], 200);
+        }
+        return $this->getRelationshipData($member_pk, 'VTestResult', false);
+    }
 
-	//대사앨범
-	public function LBook(Request $request){
-		$member_pk = $this->check->check($request);
-		if(isset($member_pk[0]['messages']) ){
-			return response()->json([ 'messages'=>$member_pk[0]['messages'] ],200);
-		}
-		return $this->getRelationshipData($member_pk,'LBook',false);	
-	}
+    //회원어휘집
+    public function MVOBook(Request $request)
+    {
+        $member_pk = $this->check->check($request);
+        if (isset($member_pk[0]['messages'])) {
+            return response()->json(['messages' => $member_pk[0]['messages']], 200);
+        }
+        return $this->getRelationshipData($member_pk, 'MVOBook', false);
+    }
 
-	//페이지네이션 (테스트중)
-	public function pagenation(Request $request){
-		$member_pk = $this->check->check($request);
-		if(isset($member_pk[0]['messages']) ){
-			return response()->json([ 'messages'=>$member_pk[0]['messages'] ],200);
-		}
-		$page = Member::paginate(3);
-		return $page;
-	}
+    //대사앨범
+    public function LBook(Request $request)
+    {
+        $member_pk = $this->check->check($request);
+        if (isset($member_pk[0]['messages'])) {
+            return response()->json(['messages' => $member_pk[0]['messages']], 200);
+        }
+        return $this->getRelationshipData($member_pk, 'LBook', false);
+    }
 
-	public function token(){
-		$token = encrypt(1);
-		//$token = decrypt($token);
-		return $token;
-	}
+    //페이지네이션 (테스트중)
+    public function pagenation(Request $request)
+    {
+        $member_pk = $this->check->check($request);
+        if (isset($member_pk[0]['messages'])) {
+            return response()->json(['messages' => $member_pk[0]['messages']], 200);
+        }
+        $page = Member::paginate(3);
+        return $page;
+    }
 
-	public function test(){
-		return $this->check->Test();
-	}
+    public function token()
+    {
+        $token = encrypt(1);
+        //$token = decrypt($token);
+        return $token;
+    }
+
+    public function test()
+    {
+        return $this->check->Test();
+    }
 
 }

@@ -98,7 +98,7 @@ Route::post('/subscribeCancel/{m_id}', 'Member\FolowerController@subscribeCancel
 
 Route::post('/submitUpload', 'Video\VideoController@submitUpload');
 
-Route::group(['middleware' => 'cors', 'prefix' => 'video'], function () {
+Route::group(['prefix' => 'video'], function () {
     //영상 조회
     Route::get('/view/{video_pk}', 'Video\VideoController@view');
 
@@ -117,8 +117,8 @@ Route::group(['middleware' => 'cors', 'prefix' => 'video'], function () {
     //비디오태그
     Route::get('/tag', 'Video\VideoController@videoTag');
 
-    //나의 비디오 페이지
-    Route::get('/myVideoPage', 'Video\VideoController@myVideoPage');
+    //나의 비디오 페이지 
+    Route::get('/myVideo', 'Video\VideoController@myVideoPage');
 
     //편집할 영상 주소
     Route::get('/edit/{video_pk}', 'Video\VideoController@videoEdit');
@@ -141,7 +141,7 @@ Route::group(['middleware' => 'cors', 'prefix' => 'video'], function () {
 
 });
 
-Route::group(['middleware' => 'cors', 'prefix' => 'videoInfo'], function () {
+Route::group(['prefix' => 'videoInfo'], function () {
 
     Route::get('/subtitle/{video_pk}', 'Subtitle\SubtitleController@subtitleView');
 

@@ -27,6 +27,9 @@ class SubtitleController extends Controller
     public function subtitleUpload(Request $request)
     {
         //return $request;
+        \Log::debug("Subtitle controller subgtitleUpload === ");
+        \Log::debug($request);
+h
         $video = Video::find($request->video_pk);
 
         $subtitle = $request->video_pk . '.' . 'srt';

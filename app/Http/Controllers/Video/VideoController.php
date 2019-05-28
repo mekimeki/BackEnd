@@ -30,7 +30,6 @@
  */
 namespace App\Http\Controllers\Video;
 
-<<<<<<< HEAD
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Member\CheckController;
 use App\Http\Controllers\Subtitle\SubtitleController;
@@ -42,23 +41,6 @@ use App\Jobs\ConverVideoForThumbnail;
 use App\Model\Video;
 use App\Model\VTag;
 use Illuminate\Http\Request;
-=======
-use Illuminate\Http\Request;
-use App\Model\Video;
-use App\Model\Member;
-use App\Model\VG;
-use App\Model\VTag;
-use App\Http\Requests\StoreVideoRequest;
-use App\Jobs\ConvertVideoForStreaming;
-use App\Jobs\ConverVideoForImage;
-use App\Jobs\ConverVideoForThumbnail;
-use App\Http\Controllers\Word\VideoWordController;
-use App\Http\Controllers\Voca\VocabularyController;
-use App\Http\Controllers\Subtitle\SubtitleController;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
-use App\Http\Controllers\Member\CheckController;
->>>>>>> b725e9986dbbba4d6490705a06735967361041ed
 use Illuminate\Support\Facades\Storage;
 
 class VideoController extends Controller
@@ -125,9 +107,11 @@ class VideoController extends Controller
         $m_id = $this->check->check($request);
 
         if (isset($m_id[0]['messages'])) {
+            \Log::debug("in if origin");
             return response()->json(['messages' => $m_id[0]['messages']], 200);
         }
 
+        \Log::debug("in origin 2");
         $video = Video::create([
             'm_id' => $m_id,
             'v_tt' => $request->video->getClientOriginalName(),
@@ -147,6 +131,8 @@ class VideoController extends Controller
         $video->save();
 
         $this->dispatch(new ConverVideoForImage($video_pk, $videoName)); //,$duration
+
+        \Log::debug("in origin 3");
         return response()->json([
             'video_pk' => $video_pk,
         ], 200);
