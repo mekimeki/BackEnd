@@ -35,6 +35,9 @@ Route::post('quiz', 'QuizController@english'); // 퀴즈
 // Route::post('quiz', 'QuizController@result'); // 퀴즈 결과 받아오기 (점수)
 Route::get('japan', 'QuizController@japanese'); // 일본어 퀴즈
 
+Route::get('wrong', 'QuizController@wrong');
+
+Route::get('sentence', 'QuizController@sentence');
 // 단어장
 
 Route::get('book/{b_id}', 'WordController@book'); // 단어장의 단어 보여주기
