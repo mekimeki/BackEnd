@@ -4,6 +4,9 @@
 /storage/*.key
 /vendor
 /config/laravel-ffmpeg.php
+/public/css
+/public/js
+/public/img
 .env
 .phpunit.result.cache
 Homestead.json
