@@ -26,8 +26,8 @@ class VoiceAnalysisController extends Controller
     {
 
         $GLOBALS['ffmpeg'] = \FFMpeg\FFMpeg::create(array(
-            'ffmpeg.binaries' => 'C:/ffmpeg/bin/ffmpeg.exe',
-            'ffprobe.binaries' => 'C:/ffmpeg/bin/ffprobe.exe',
+            'ffmpeg.binaries' => '/usr/local/bin/ffmpeg/ffmpeg',
+            'ffprobe.binaries' => '/usr/local/bin/ffmpeg/ffprobe',
             'timeout' => 3600,
             'ffmpeg.threads' => 12,
         ));

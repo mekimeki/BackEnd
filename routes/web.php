@@ -12,7 +12,9 @@
 */
 use Illuminate\Http\Request;
 
-Route::get('/{any}', 'IndexController@index')->where('any','.*');
+Route::get('/{any}', function(){
+	return view('index');
+})->where('any','.*');
 
 // Route::get('/', function () {
 //     return view('welcome');
