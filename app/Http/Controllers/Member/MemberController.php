@@ -242,6 +242,19 @@ class MemberController extends Controller
         return $page;
     }
 
+    public function upPoint(Request $request){
+      $member_pk = $this->check->check($request);
+      if (isset($member_pk[0]['messages'])) {
+          return response()->json(['messages' => $member_pk[0]['messages']], 200);
+      }
+      Member::where('member_pk',$member_pk)->increment('point',10);
+    }
+
+    public function getPoint(Request $request){
+
+      return Member::where('member_pk',1)->select('point')->get();
+    }
+
     public function token()
     {
         $token = encrypt(1);
@@ -253,5 +266,4 @@ class MemberController extends Controller
     {
         return $this->check->Test();
     }
-
 }

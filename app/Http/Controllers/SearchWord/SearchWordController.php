@@ -34,15 +34,18 @@ class SearchWordController extends Controller
 		
 		/*태그 와 태그 내용 통째로 제거*/
 		preg_match('/<div class="card_word #word #eng">(.*?)<\/ul>/is', $result, $mean);
-		$mean= preg_replace("!<div(.*?)<\/div>!is","",$mean);
-		
+    $mean = preg_replace("!<div(.*?)<\/div>!is","",$mean);
+    $mean = preg_replace("/\t|\n/", '', $mean);
+    
+
 		/*태그만제거*/
 		if($pronunciation && $mean){
 			return response()->json([
 				'word'=>strip_tags($pronunciation[0]),
 				'mean'=>strip_tags($mean[0]),
-			]);
-			return $pronunciation[0].' : '.$mean[0];
+      ]);
+
+			return $pronunciation[0].' : '.ltrim($mean[0]);
 		}else{
 			return '검색 결과가 없습니다.';
 		}

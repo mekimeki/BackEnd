@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Model\Video;
+
+putenv('GOOGLE_APPLICATION_CREDENTIALS=/usr/local/bin/capston.json');
+
 use Google\Cloud\Speech\V1\RecognitionAudio;
 use Google\Cloud\Speech\V1\RecognitionConfig;
 use Google\Cloud\Speech\V1\RecognitionConfig\AudioEncoding;
@@ -126,7 +129,6 @@ class VoiceAnalysisController extends Controller
 
     public function voiceRecord(Request $request)
     {
-        \Log::debug('in record');
         $id = $request->input('id');
         $title = $request->input('title');
         $originText = $request->originText;
@@ -134,9 +136,9 @@ class VoiceAnalysisController extends Controller
 
         $file = $request->file('audio');
 
-        \Log::debug($request->all());
+        $pubPath = public_path('audio/' . $id . '/');
 
-        $pubPath = public_path('audio\\' . $id . '\\');
+        \Log::debug("voiceRecord in vanaly ".$pubPath);
 
         $recordPath = $pubPath . 'check.webm';
 
@@ -155,18 +157,23 @@ class VoiceAnalysisController extends Controller
         $faudio->save($audio_format, $comparePath);
 
         if (\Storage::disk("local_audio")->exists($id . '/check.webm')) {
+            \Log::debug("in exists check.webm");
             \Storage::disk("local_audio")->delete($id . '/check.webm');
         }
 
+
+        \Log::debug("comparepath ==".$comparePath);
         $recordText = $this->analysis($comparePath);
 
-        $pythonPath = 'audio\\' . $id . '\\' . $title . '_compare.wav';
+        $pythonPath = public_path('audio/' . $id . '/' . $title . '_compare.wav');
 
         $ffprobe = \FFMpeg\FFProbe::create();
+      
         $recordDuration = $ffprobe->format($pythonPath)->get('duration');
 
         $durationDistance = ($originDuration - abs($originDuration - $recordDuration)) / $originDuration * 100;
 
+        $pythonPath = 'audio/'.$id.'/'.$title.'_compare.wav';
         $analyDate = $this->intonation($pythonPath);
 
         for ($i = 0; $i < count($analyDate); $i++) {
@@ -180,7 +187,7 @@ class VoiceAnalysisController extends Controller
             \Log::debug("durationDistance ===" . $durationDistance);
             \Log::debug("textComparison ===" . $textComparison["similarity"]);
 
-            $score = 20 + ($durationDistance * 0.2) + ($textComparison["similarity"] * 0.4);
+            $score = 40 + ($durationDistance * 0.2) + ($textComparison["similarity"] * 0.4);
             return ["recordAnaly" => $analyDate, "score" => (int) $score];
 
         }
@@ -195,8 +202,6 @@ class VoiceAnalysisController extends Controller
         $v_pk = $request->input('v_pk');
         $duration = floor($e_time - $s_time);
 
-        \Log::debug($request->all());
-
         $audio_format = new \FFMpeg\Format\Audio\Wav();
 
         $address = video::select('v_add')->where('video_pk', $v_pk)->get()->toArray();
@@ -205,11 +210,13 @@ class VoiceAnalysisController extends Controller
 
         $fileName = array_pop($paths);
 
-        $filePath = public_path('storage\\video\\' . $id . '\\' . $fileName);
+        $filePath = public_path('storage/video/' . $id . '/' . $fileName);
+
+        \Log::debug("voiceExtraciton in vanaly ".$filePath);
 
         $audio = $GLOBALS['ffmpeg']->open($filePath);
 
-        $path = public_path('audio\\' . $id);
+        $path = public_path('audio/' . $id);
 
         if (!is_dir($path)) {
             mkdir($path);
@@ -226,19 +233,21 @@ class VoiceAnalysisController extends Controller
 
         $clip->save($audio_format, $path);
 
-        $path = 'audio\\' . $id . '\\' . $fileName . '_origin.wav';
+        $path = 'audio/' . $id . '/' . $fileName . '_origin.wav';
         $analy_data = $this->intonation($path);
 
         for ($i = 0; $i < count($analy_data); $i++) {
             $analy_data[$i] = (int) $analy_data[$i];
         }
-
+        $path = public_path($path);
+        
         return json_encode(["originText" => $this->analysis($path), "originDuration" => $duration, "analy" => $analy_data]);
     }
 
     public function intonation($path)
     {
-        $returns = exec("python VoiceAnalysis.py " . $path);
+        $returns = exec("python3 VoiceAnalysis.py " . $path);
+        \Log::debug("python VoiceAnalysis.py ".$path);
         $returns = substr($returns, 1, -1);
         $return_arr = explode(', ', $returns);
 

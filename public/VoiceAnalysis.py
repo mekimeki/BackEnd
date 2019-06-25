@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import librosa
 import numpy
 import matplotlib.pylab as plt
@@ -58,7 +56,7 @@ def main():
     fmax = 500
 
     overlap = 20
-    loadWav = "C:/Capston/back-end/public/" + sys.argv[1]
+    loadWav = "/var/www/html/BackEnd/public/" + sys.argv[1]
     y, sr = librosa.load(loadWav, sr=sample_f)
 
     duration = librosa.get_duration(y=y, sr=sr)

@@ -79,12 +79,13 @@ class VideoController extends Controller
             'v_tt' => $request->video->getClientOriginalName(),
             'sub_add' => asset('storage/word0.srt'), //.$submit
             'v_add' => asset('storage'),
+            'pic_add' =>asset('storage')
             //'d_date'=>date('Y-m-d H:i:s',strtotime ("+7 days")),
         ]);
         $video->save();
         //return $video->video_pk;
         //$request->submit->storeAs('public', $video->video_pk.'.srt');
-        $video->where('video_pk', $video->video_pk)->update(['sub_add' => asset('storage/' . $video->video_pk . '.srt')]);
+        $video->where('video_pk', $video->video_pk)->update(['sub_add' => asset('storage/' . $video->video_pk . '.srt'),'pic_add' => asset('storage/img/' . $video->$video_pk . '.jpg')]);
 
         //$request->submit->storeAs('public', $video->video_pk.'.'.$request->submit->getClientOriginalExtension());
         $streaming = [
@@ -250,7 +251,6 @@ class VideoController extends Controller
         );
         }
          */
-
         Storage::disk('img')->delete([
             $video_pk . '_1' . '.jpg',
             $video_pk . '_2' . '.jpg',
