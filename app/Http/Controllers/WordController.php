@@ -75,7 +75,7 @@ class WordController extends Controller
     public function store(Request $request) // 북마크한 단어 저장
     {
         $email = $request->input('email');
-        \Log::debug($email);
+        \Log::debug("email = ".$email);
         $w_nm = $request->input('word');
 
         $id = member::where('email',$email)->select('member_pk')->get()->toArray();

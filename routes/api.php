@@ -186,6 +186,11 @@ Route::group(['prefix' => 'member'], function () {
     Route::get('/SResult', 'Member\MemberController@SResult');
 
     Route::post('/addVoca', 'Voca\MVOController@addVoca');
+
+    //포인트 관련
+    Route::post('/upPoint', 'Member\MemberController@upPoint');
+
+    Route::get('/getPoint', 'Member\MemberController@getPoint');	
 });
 
 Route::group(['prefix' => 'word'], function () {

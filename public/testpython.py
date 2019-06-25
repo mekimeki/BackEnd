@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import sys
 
-sys.exit("hello")
+print("hello world")
